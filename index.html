@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify - Web Player: Music for everyone</title>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <style>
+        /* --- Global Resets & Variables --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000000;
+            font-family: 'Circular Std', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+            color: #ffffff;
+            overflow-x: hidden;
+            padding-bottom: 100px;
+        }
+
+        /* --- Topbar Styles --- */
+        .spotify-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            padding: 0 16px;
+            background-color: #000000;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .spotify-logo {
+            width: 85px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .topbar-center {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            max-width: 480px;
+            margin: 0 16px;
+        }
+
+        .home-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            background-color: #1f1f1f;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .home-button:hover {
+            transform: scale(1.05);
+        }
+
+        .search-container {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-container input {
+            width: 100%;
+            height: 48px;
+            padding-left: 48px;
+            border-radius: 50px;
+            border: none;
+            background-color: #1f1f1f;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-container input:hover {
+            background-color: #2a2a2a;
+        }
+
+        .search-container input:focus {
+            box-shadow: 0 0 0 2px #ffffff;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #b3b3b3;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-notifications {
+            background: transparent;
+            border: none;
+            color: #b3b3b3;
+            cursor: pointer;
+        }
+
+        .btn-notifications:hover {
+            color: #ffffff;
+        }
+
+        /* --- Buttons & UI Elements --- */
+        .pill-btn {
+            background-color: #2a2a2a;
+            color: #ffffff;
+            padding: 6px 16px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .pill-btn:hover {
+            background-color: #333333;
+            transform: scale(1.03);
+        }
+
+        .pill-btn.active {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        .btn-premium {
+            background-color: #ffffff;
+            color: #000000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-premium:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-install {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            color: #ffffff;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .profile-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #2a2a2a;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* --- Responsive Main Layout --- */
+        .main-layout {
+            display: flex;
+            height: calc(100vh - 154px);
+            padding: 0 8px 8px 8px;
+            gap: 8px;
+        }
+
+        .library {
+            width: 280px;
+            background-color: #121212;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .library-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #b3b3b3;
+        }
+
+        .library-actions button {
+            background: transparent;
+            border: none;
+            color: #b3b3b3;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .library-actions button:hover {
+            color: #ffffff;
+        }
+
+        .down-btn {
+            display: flex;
+            gap: 8px;
+        }
+
+        .library-search-row {
+            display: flex;
+            justify-content: space-between;
+            color: #b3b3b3;
+        }
+
+        .lib-search-btn {
+            background: transparent;
+            border: none;
+            color: #b3b3b3;
+            cursor: pointer;
+        }
+
+        .lib-search-btn:hover {
+            color: #ffffff;
+        }
+
+        .recents-dropdown-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        /* --- Library Dynamic Playlists Items Container --- */
+        .library-playlists-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .playlist-item-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .playlist-item-row:hover {
+            background-color: #1f1f1f;
+        }
+
+        .playlist-item-row.active-filter {
+            background-color: #2a2a2a;
+        }
+
+        .playlist-icon-box {
+            width: 48px;
+            height: 48px;
+            background-color: #282828;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b3b3b3;
+        }
+
+        .playlist-meta-info h5 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 2px;
+        }
+
+        .playlist-meta-info p {
+            font-size: 12px;
+            color: #b3b3b3;
+        }
+
+        /* --- Main Content Profile Dashboard --- */
+        .main-content-placeholder {
+            flex: 1;
+            background-color: #121212;
+            border-radius: 8px;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .main-content-placeholder::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .main-content-placeholder::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .btns {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        /* --- Promotional Card Advertisement --- */
+        .promo-banner {
+            display: flex;
+            background: linear-gradient(90deg, #181818 0%, #0c0c0c 100%);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 16px;
+            min-height: 180px;
+        }
+
+        .promo-img {
+            width: 180px;
+            height: auto;
+            object-fit: cover;
+        }
+
+        .promo-text {
+            flex: 1;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .listen-now-btn {
+            background-color: #ffffff;
+            color: #000000;
+            font-weight: 700;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 24px;
+            width: fit-content;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        /* --- Grid Song System Layout --- */
+        .songs {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .song-card {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            padding-right: 40px;
+        }
+
+        .song-card:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .song-card img {
+            width: 56px;
+            height: 56px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .song-card p {
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .play-btn-mini {
+            position: absolute;
+            right: 12px;
+            background-color: #1ed760;
+            color: black;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .song-card:hover .play-btn-mini {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- Layout Container Grid Structures --- */
+        .row-container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            margin-top: 40px;
+            width: 100%;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .show-all {
+            color: #b3b3b3;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .show-all:hover {
+            text-decoration: underline;
+        }
+
+        /* --- Scroll Horizontal Shelves --- */
+        .jump-songs {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            margin-top: 16px;
+            padding-bottom: 8px;
+        }
+
+        .jump-songs::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .jump-songs::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        .jump-card {
+            background-color: #181818;
+            padding: 12px;
+            border-radius: 6px;
+            min-width: 150px;
+            max-width: 180px;
+            flex-shrink: 0;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .jump-card:hover {
+            background-color: #242424;
+        }
+
+        .img-container {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .jump-card img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .play-btn {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            background-color: #1ed760;
+            color: black;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .jump-card:hover .play-btn {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .jump-card h3 {
+            font-size: 13px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .jump-card p {
+            color: #b3b3b3;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* --- Right Column Profiles & Options Menu --- */
+        .now-playing-sidebar {
+            width: 320px;
+            background-color: #121212;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .options-menu {
+            position: absolute;
+            top: 30px;
+            right: 0;
+            background-color: #282828;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            display: none;
+            flex-direction: column;
+            z-index: 10;
+            width: 160px;
+        }
+
+        .options-menu button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .options-menu button:hover {
+            background-color: #383838;
+        }
+
+        .sidebar-art {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .sidebar-track-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-track-meta div {
+            overflow: hidden;
+        }
+
+        .sidebar-track-meta h2 {
+            font-size: 18px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .artist-card-box {
+            background-color: #181818;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .artist-card-banner {
+            height: 120px;
+            background-image: url('https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72c06c6ac8a8d931a96dde42a84');
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.3s ease;
+        }
+
+        .artist-card-details {
+            padding: 16px;
+        }
+
+        .sidebar-follow-btn {
+            background: transparent;
+            border: 1px solid #b3b3b3;
+            color: white;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+
+        /* --- Footer Media Controller Systems --- */
+        .player-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 40%;
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .ctrl-btn {
+            background: none;
+            border: none;
+            color: #b3b3b3;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .ctrl-btn.active {
+            color: #1db954;
+        }
+
+        .playback-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #a7a7a7;
+            font-size: 11px;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .progress-container {
+            flex-grow: 1;
+            height: 4px;
+            background-color: #4f4f4f;
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #ffffff;
+            border-radius: 2px;
+        }
+
+        .progress-container:hover .progress-bar {
+            background-color: #1db954;
+        }
+
+        .video-popup-window {
+            position: fixed;
+            right: 20px;
+            bottom: 110px;
+            width: 320px;
+            aspect-ratio: 16/9;
+            background-color: #000;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+            z-index: 999;
+            overflow: hidden;
+            display: none;
+        }
+
+        .video-popup-window video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        footer.bottom-player {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 90px;
+            background-color: #121212;
+            border-top: 1px solid #282828;
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .player-meta {
+            width: 30%;
+            overflow: hidden;
+        }
+
+        .player-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .player-artist {
+            font-size: 12px;
+            color: #b3b3b3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .master-play-btn {
+            background-color: #ffffff;
+            color: #000000;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .player-right {
+            width: 30%;
+        }
+
+        /* --- Responsive Media Query Adapters --- */
+        @media (max-width: 1120px) {
+            .now-playing-sidebar {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            /* --- Mobile Topbar Adjustments --- */
+            .spotify-topbar {
+                height: auto;
+                padding: 10px;
+                flex-wrap: wrap;
+                /* Allows items to wrap to a new line if needed */
+                gap: 10px;
+            }
+
+            .topbar-center {
+                order: 3;
+                /* Moves the search bar below the logos/buttons to save space */
+                max-width: 100%;
+                margin: 0;
+            }
+
+            /* Keep premium and install buttons visible but scaled for mobile */
+            .topbar-right .btn-premium,
+            .topbar-right .btn-install {
+                display: flex;
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+
+            /* --- Mobile Layout & Playlist Adjustments --- */
+            .main-layout {
+                flex-direction: column;
+                /* Stacks the library and songs on top of each other */
+                height: auto;
+            }
+
+            .library {
+                display: block;
+                width: 100%;
+                background-color: #121212;
+                padding: 12px;
+            }
+
+            /* Put the playlists side-by-side so you can swipe left and right */
+            .library-playlists-list {
+                display: flex;
+                flex-direction: row;
+                gap: 12px;
+                overflow-x: auto;
+                /* Enables horizontal swiping */
+                padding-bottom: 8px;
+            }
+
+            /* Make each playlist look like a small neat card */
+            .playlist-item-row {
+                flex-direction: column;
+                /* Stack image above text */
+                align-items: center;
+                text-align: center;
+                min-width: 90px;
+                padding: 6px;
+            }
+
+            .playlist-meta-info h5 {
+                font-size: 11px;
+                margin-top: 4px;
+            }
+
+            /* Hide extra text labels that crowd the mobile screen */
+            .library-search-row,
+            .playlist-meta-info p {
+                display: none;
+            }
+        }
+
+        .more-like-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .more-like-title {
+            color: #b3b3b3;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .editorial-card {
+            position: relative;
+            height: 460px;
+            border-radius: 12px;
+            overflow: hidden;
+
+        }
+
+        .more-like-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 40px;
+            width: 100%;
+        }
+
+        .more-like-card {
+            width: 100%;
+        }
+
+        .more-like-title {
+            color: #b3b3b3;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .editorial-card {
+            position: relative;
+            height: 700px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #181818;
+            cursor: pointer;
+        }
+
+        .editorial-media {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .editorial-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top,
+                    rgba(0, 0, 0, .85),
+                    rgba(0, 0, 0, .25) 45%,
+                    rgba(0, 0, 0, .45));
+            pointer-events: none;
+        }
+
+        .editorial-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 5;
+            color: white;
+        }
+
+        .editorial-overlay h2 {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .editorial-overlay p {
+            font-size: 16px;
+            color: #f1f1f1;
+        }
+
+        .editorial-footer {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-btn {
+            background: rgba(255, 255, 255, .15);
+            border: none;
+            color: white;
+            padding: 12px 22px;
+            border-radius: 999px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .preview-btn:hover {
+            background: rgba(255, 255, 255, .25);
+        }
+
+        .play-circle {
+            width: 56px;
+            height: 56px;
+            border: none;
+            border-radius: 50%;
+            background: white;
+            color: black;
+            font-size: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .play-circle:hover {
+            transform: scale(1.08);
+        }
+
+        @media(max-width:900px) {
+            .more-like-section {
+                grid-template-columns: 1fr;
+            }
+
+            .editorial-card {
+                height: 600px;
+            }
+        }
+
+        .site-footer {
+            margin-top: 60px;
+            background: #121212;
+            border-top: 1px solid #282828;
+            padding: 40px 30px 120px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 30px;
+        }
+
+        .footer-column h4 {
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .footer-column a {
+            display: block;
+            color: #b3b3b3;
+            text-decoration: none;
+            margin-bottom: 10px;
+            transition: 0.3s;
+        }
+
+        .footer-column a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #282828;
+            margin-top: 30px;
+            padding-top: 20px;
+            color: #b3b3b3;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="spotify-topbar">
+        <div class="topbar-left">
+            <img src="images/logo.png" alt="Spotify" class="spotify-logo">
+        </div>
+
+        <div class="topbar-center">
+            <div class="home-button" id="homeButton">
+                <span class="material-symbols-outlined">home</span>
+            </div>
+            <div class="search-container">
+                <span class="material-symbols-outlined search-icon">search</span>
+                <input type="text" id="searchInput" placeholder="What do you want to play?">
+            </div>
+        </div>
+
+        <div class="topbar-right">
+            <button class="btn-premium">Explore Premium</button>
+            <button class="btn-install">
+                <span class="material-symbols-outlined">download_for_offline</span>
+                Install App
+            </button>
+            <button class="btn-notifications">
+                <span class="material-symbols-outlined">notifications</span>
+            </button>
+            <div class="profile-avatar">
+                <img src="images/profile.png" alt="User">
+            </div>
+        </div>
+    </header>
+
+    <main class="main-layout">
+
+        <aside class="library">
+            <div class="library-header">
+                <h4>Your Library</h4>
+                <div class="library-actions">
+                    <div class="create">
+                        <button id="createPlaylistBtn">+ Create</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="down-btn">
+                <button class="pill-btn">Playlists</button>
+                <button class="pill-btn">Artists</button>
+            </div>
+
+            <div class="library-search-row">
+                <div class="search-left">
+                    <button class="lib-search-btn">
+                        <span class="material-symbols-outlined">search</span>
+                    </button>
+                </div>
+                <div class="recents-dropdown-btn">
+                    <span>Recents</span>
+                    <span class="material-symbols-outlined">list</span>
+                </div>
+            </div>
+
+            <div class="library-playlists-list" id="libraryPlaylistsContainer">
+            </div>
+        </aside>
+
+        <section class="main-content-placeholder">
+            <div class="btns">
+                <button class="pill-btn active">All</button>
+                <button class="pill-btn">Music</button>
+                <button class="pill-btn">Podcasts</button>
+            </div>
+
+            <div class="promo-banner">
+                <img src="https://i.scdn.co/image/ab67616d0000b273d4d9818ded27c1e53bd3c2a0" alt="ad" class="promo-img">
+                <div class="promo-text">
+                    <p style="font-size: 11px; color: #b3b3b3; font-weight: bold; margin-bottom: 4px;">Tujhko - Cocktail
+                        2 <br><span style="font-weight: normal; opacity: 0.6;">Advertisement</span></p>
+                    <h1 style="font-size: 28px; font-weight: 800; margin-bottom: 16px;">Arijit Singh's biggest love
+                        song!</h1>
+                    <button class="listen-now-btn">Listen now</button>
+                </div>
+            </div>
+
+            <div class="songs">
+                <div class="song-card" data-id="s1" data-src="songs/jann_se.mp3" data-type="audio">
+                    <img src="https://i.scdn.co/image/ab67616d0000b2734c3eeb98521e02693a46d6db" alt="Dhurandhar">
+                    <p>Dhurandhar - Title Track<br><span
+                            style="font-size:12px; color:#b3b3b3; font-weight:normal;">Shashwat Sachdev</span></p>
+                    <div class="play-btn-mini">▶</div>
+                </div>
+
+                <div class="song-card" data-id="s2" data-src="songs/aari.mp3" data-type="audio">
+                    <img src="https://i.scdn.co/image/ab67616d0000b2734c3eeb98521e02693a46d6db" alt="Dhurandhar">
+                    <p>Dhurandhar The Revenge<br><span
+                            style="font-size:12px; color:#b3b3b3; font-weight:normal;">Ranveer Singh, Shashwat</span>
+                    </p>
+                    <div class="play-btn-mini">▶</div>
+                </div>
+
+
+
+                <div class="song-card" data-id="s4" data-src="songs/lutt.mp3" data-type="audio">
+                    <img src="https://i.scdn.co/image/ab67616d00001e023fc69e04bff0d3c1bb2688d3" alt="Lutt Le Gaya">
+                    <p>Lutt Le Gaya<br><span style="font-size:12px; color:#b3b3b3; font-weight:normal;">Ranveer Singh,
+                            Akshaye Khanna</span></p>
+                    <div class="play-btn-mini">▶</div>
+                </div>
+
+                <div class="song-card" data-id="s5" data-src="songs/baloch.mp3" data-type="audio">
+                    <img src="https://i.scdn.co/image/ab67616d0000b2734c3eeb98521e02693a46d6db" alt="Sher-e-Baloch">
+                    <p>Sher-e-Baloch<br><span style="font-size:12px; color:#b3b3b3; font-weight:normal;">Akshaye Khanna,
+                            Rehman Daket</span></p>
+                    <div class="play-btn-mini">▶</div>
+                </div>
+
+                <div class="song-card" data-id="s6" data-src="songs/gehra_hu.mp3" data-type="audio">
+                    <img src="https://i.scdn.co/image/ab67616d0000b273d4d9818ded27c1e53bd3c2a0" alt="Gehra Hua">
+                    <p>Gehra Hua<br><span style="font-size:12px; color:#b3b3b3; font-weight:normal;">Arijit Singh,
+                            Shashwat</span></p>
+                    <div class="play-btn-mini">▶</div>
+                </div>
+            </div>
+
+            <div class="row-container" id="jumpSectionContainer">
+                <div class="column-right">
+                    <div class="section-header">
+                        <h2>Jump back in</h2>
+                        <span class="show-all">Show all</span>
+                    </div>
+                    <div class="jump-songs">
+                        <div class="jump-card" data-id="j1"
+                            data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3" data-type="audio">
+                            <div class="img-container">
+                                <img src="https://i.scdn.co/image/ab67616d00001e02605c16748c8656882540cb78"
+                                    alt="Ranjha">
+                                <div class="play-btn">▶</div>
+                            </div>
+                            <h3>Ranjha</h3>
+                            <p>Jasleen Royal, B Praak</p>
+                        </div>
+
+                        <div class="jump-card" data-id="j2"
+                            data-src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3" data-type="audio">
+                            <div class="img-container">
+                                <img src="https://i.scdn.co/image/ab67616d0000b2734c3eeb98521e02693a46d6db"
+                                    alt="Dhurandhar">
+                                <div class="play-btn">▶</div>
+                            </div>
+                            <h3>Dhurandhar Remix</h3>
+                            <p>Shashwat Sachdev</p>
+                        </div>
+
+                        <div class="jump-card" data-id="j3"
+                            data-src="songs/papautio.mp3"
+                            data-type="audio">
+                            <div class="img-container">
+                                <img src="https://i.scdn.co/image/ab67616d00001e0290fa9bde9e533701feaf1dc6"
+                                    alt="Ghar Kab Aaoge">
+                                <div class="play-btn">▶</div>
+                            </div>
+                            <h3>Papaoutai</h3>
+                            <p>Afro Soul</p>
+                        </div>
+
+                        <div class="jump-card" data-id="j4" data-src="songs/jugar.mp3" data-type="audio">
+                            <div class="img-container">
+                                <img src="https://i.scdn.co/image/ab67616d00001e02e76275da5828d6f937c3bcf3"
+                                    alt="Aaya Re Toofan">
+                                <div class="play-btn">▶</div>
+                            </div>
+                            <h3>Jugraafiya</h3>
+                            <p>Shreya Ghoshal and Udit Narayan</p>
+                        </div>
+
+                        <div class="jump-card" data-id="j5" data-src="songs/jaye.mp3" data-type="audio">
+                            <div class="img-container">
+                                <img src="https://i.scdn.co/image/ab67616d0000b2734c3eeb98521e02693a46d6db"
+                                    alt="Mere Dholna">
+                                <div class="play-btn">▶</div>
+                            </div>
+                            <h3>Jaye Sajna</h3>
+                            <p></p>
+                        </div>
+
+                        <div class="jump-card" data-id="j6" data-src="songs/idots.mp3" data-type="audio">
+                            <div class="img-container">
+                                <img src="https://i.scdn.co/image/ab67616d00004851593dd16691c117c716e210ae"
+                                    alt="XO-2 Track">
+                                <div class="play-btn">▶</div>
+                            </div>
+                            <h3>3 Idiots</h3>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="more-like-section">
+
+                <!-- IMAGE CARD -->
+                <div class="more-like-card">
+                    <p class="more-like-title">More like mikeeysmind</p>
+
+                    <div class="editorial-card">
+                        <video src="songs/border2.mp4" class="editorial-media" autoplay muted loop playsinline></video>
+                        <div class="editorial-overlay">
+                            <h2>Soft Spot</h2>
+                            <p>Album • JMSN</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIDEO CARD -->
+                <div class="more-like-card">
+                    <p class="more-like-title">More like Shashwat Sachdev</p>
+
+                    <div class="editorial-card">
+                        <video class="editorial-media" autoplay muted loop playsinline>
+                            <source src="songs/gehra.mp4" type="video/mp4">
+                        </video>
+
+                        <div class="editorial-overlay">
+                            <h2>Bengaluru Bangers</h2>
+                            <p>Playlist • Spotify</p>
+                        </div>
+
+                        <div class="editorial-footer">
+                            <button class="preview-btn">Preview</button>
+                            <button class="play-circle">▶</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <aside class="now-playing-sidebar">
+            <div class="sidebar-header">
+                <h3 id="sidebarTopTitle">XO-2</h3>
+                <span class="material-symbols-outlined" id="optionsMenuBtn" style="cursor: pointer;">more_horiz</span>
+
+                <div class="options-menu" id="optionsMenu">
+                    <button id="addToPlaylistOption">Add to Playlist</button>
+                    <button onclick="alert('Lyrics are currently loading...')">Show Lyrics</button>
+                    <button onclick="alert('Shared to clipboard!')">Copy Link</button>
+                </div>
+            </div>
+
+            <img src="https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72c06c6ac8a8d931a96dde42a84"
+                class="sidebar-art" id="sidebarArt" alt="Track Art">
+
+            <div class="sidebar-track-meta">
+                <div>
+                    <h2 id="sidebarTitle">XO-2</h2>
+                    <p id="sidebarArtist" style="color: #b3b3b3; font-size: 13px; margin-top: 4px;">EVN1NG,
+                        SoundBassHigh, Auren</p>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center; flex-shrink: 0;">
+                    <span class="material-symbols-outlined">ios_share</span>
+                    <span class="material-symbols-outlined" style="color: #1ed760;">check_circle</span>
+                </div>
+            </div>
+
+            <div class="artist-card-box">
+                <p style="font-size: 14px; font-weight: bold; padding: 16px 16px 8px 16px;">About the artist</p>
+                <div class="artist-card-banner" id="sidebarArtistBanner"></div>
+                <div class="artist-card-details">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <h4 id="sidebarArtistName">EVN1NG</h4>
+                        <span class="material-symbols-outlined" style="color: #1ed760; font-size: 16px;">verified</span>
+                    </div>
+                    <p style="color: #b3b3b3; font-size: 13px; margin: 8px 0;">107,698 monthly listeners</p>
+                    <button class="sidebar-follow-btn">Follow</button>
+                </div>
+            </div>
+        </aside>
+
+    </main>
+
+    <div class="video-popup-window" id="videoPopup">
+        <video id="popupVideo" playsinline></video>
+    </div>
+
+    <footer class="bottom-player" id="bottomPlayer">
+        <div class="player-meta">
+            <p class="player-title" id="currentTitle">Select a track</p>
+            <p class="player-artist" id="currentArtist">Ready to play</p>
+        </div>
+
+        <div class="player-center">
+            <div class="player-controls">
+                <button class="ctrl-btn" id="shuffleBtn">🔀</button>
+                <button class="ctrl-btn" id="prevBtn">⏮</button>
+                <button class="master-play-btn" id="masterPlayBtn">▶</button>
+                <button class="ctrl-btn" id="nextBtn">⏭</button>
+                <button class="ctrl-btn" id="repeatBtn">🔁</button>
+            </div>
+
+            <div class="playback-bar">
+                <span id="currentTime">0:00</span>
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <span id="totalTime">0:00</span>
+            </div>
+        </div>
+        <div class="player-right"></div>
+    </footer>
+
+    <footer class="site-footer">
+        <div class="footer-content">
+
+            <div class="footer-column">
+                <h4>Company</h4>
+                <a href="#">About</a>
+                <a href="#">Jobs</a>
+                <a href="#">For the Record</a>
+            </div>
+
+            <div class="footer-column">
+                <h4>Communities</h4>
+                <a href="#">Artists</a>
+                <a href="#">Developers</a>
+                <a href="#">Advertising</a>
+            </div>
+
+            <div class="footer-column">
+                <h4>Useful Links</h4>
+                <a href="#">Support</a>
+                <a href="#">Free Mobile App</a>
+                <a href="#">Premium</a>
+            </div>
+
+            <div class="footer-column">
+                <h4>Follow Us</h4>
+                <a href="#">Instagram</a>
+                <a href="#">Twitter</a>
+                <a href="#">Facebook</a>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            © 2025 Spotify Clone | Made by Shreyas
+        </div>
+    </footer>
+
+
+    <script>
+        const audioEngine = new Audio();
+        const videoEngine = document.getElementById('popupVideo');
+
+        let activePlayer = null;
+        let currentTrackId = null;
+        let isPlaying = false;
+        let isShuffle = false;
+        let isRepeat = false;
+
+        // Custom dynamic playlist database tracking structure arrays
+        let customPlaylists = {};
+        let activePlaylistFilter = null;
+
+        const bottomPlayer = document.getElementById('bottomPlayer');
+        const videoPopup = document.getElementById('videoPopup');
+        const currentTitle = document.getElementById('currentTitle');
+        const currentArtist = document.getElementById('currentArtist');
+        const masterPlayBtn = document.getElementById('masterPlayBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
+        const currentTimeText = document.getElementById('currentTime');
+        const totalTimeText = document.getElementById('totalTime');
+
+        const sidebarArt = document.getElementById('sidebarArt');
+        const sidebarTopTitle = document.getElementById('sidebarTopTitle');
+        const sidebarTitle = document.getElementById('sidebarTitle');
+        const sidebarArtist = document.getElementById('sidebarArtist');
+        const sidebarArtistName = document.getElementById('sidebarArtistName');
+        const sidebarArtistBanner = document.getElementById('sidebarArtistBanner');
+
+        const optionsMenuBtn = document.getElementById('optionsMenuBtn');
+        const optionsMenu = document.getElementById('optionsMenu');
+        const searchInput = document.getElementById('searchInput');
+        const homeButton = document.getElementById('homeButton');
+
+        const createPlaylistBtn = document.getElementById('createPlaylistBtn');
+        const libraryPlaylistsContainer = document.getElementById('libraryPlaylistsContainer');
+        const addToPlaylistOption = document.getElementById('addToPlaylistOption');
+        const jumpSectionContainer = document.getElementById('jumpSectionContainer');
+
+        const playableCards = Array.from(document.querySelectorAll('.song-card, .jump-card'));
+
+        // Action function engine to render playlists cleanly on the sidebar navigation mapping pane
+        function refreshSidebarPlaylists() {
+            libraryPlaylistsContainer.innerHTML = '';
+
+            Object.keys(customPlaylists).forEach(playlistName => {
+                const songCount = customPlaylists[playlistName].length;
+
+                const div = document.createElement('div');
+                div.className = 'playlist-item-row';
+                if (activePlaylistFilter === playlistName) div.classList.add('active-filter');
+
+                div.innerHTML = `
+                <div class="playlist-icon-box">
+                    <span class="material-symbols-outlined">music_note</span>
+                </div>
+                <div class="playlist-meta-info">
+                    <h5>${playlistName}</h5>
+                    <p>Playlist • ${songCount} track${songCount !== 1 ? 's' : ''}</p>
+                </div>
+            `;
+
+                div.addEventListener('click', () => {
+                    filterViewByPlaylist(playlistName);
+                });
+
+                libraryPlaylistsContainer.appendChild(div);
+            });
+        }
+
+        // Filter system engine grid rows display to limit contents matching structural lists active
+        function filterViewByPlaylist(playlistName) {
+            activePlaylistFilter = playlistName;
+            refreshSidebarPlaylists();
+
+            const savedIds = customPlaylists[playlistName] || [];
+            jumpSectionContainer.style.display = 'none'; // hide jump section when on a custom list
+
+            playableCards.forEach(card => {
+                const cardId = card.getAttribute('data-id');
+                if (savedIds.includes(cardId)) {
+                    card.style.display = card.classList.contains('song-card') ? 'flex' : 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Return workspace window layout frame state configuration safely back home views standard resets
+        homeButton.addEventListener('click', () => {
+            activePlaylistFilter = null;
+            refreshSidebarPlaylists();
+            jumpSectionContainer.style.display = 'block';
+            searchInput.value = '';
+
+            playableCards.forEach(card => {
+                card.style.display = card.classList.contains('song-card') ? 'flex' : 'block';
+            });
+        });
+
+        // Prompt input context engine configuration trigger creation window layout sets logic mapping setup names
+        createPlaylistBtn.addEventListener('click', () => {
+            const name = prompt("Enter a name for your custom playlist:");
+            if (name && name.trim() !== "") {
+                const cleanName = name.trim();
+                if (!customPlaylists[cleanName]) {
+                    customPlaylists[cleanName] = [];
+                    refreshSidebarPlaylists();
+                } else {
+                    alert("A playlist with that name already exists!");
+                }
+            }
+        });
+
+        // Add current selection track directly into custom object list dynamically inside workspace configuration matrix
+        addToPlaylistOption.addEventListener('click', () => {
+            if (!currentTrackId) {
+                alert("Please select and play a song first!");
+                return;
+            }
+
+            const playlistsAvailable = Object.keys(customPlaylists);
+            if (playlistsAvailable.length === 0) {
+                alert("No custom lists found. Click '+ Create' in your library panel first!");
+                return;
+            }
+
+            const target = prompt(`Type the playlist name to add this song:\nAvailable lists:\n- ${playlistsAvailable.join('\n- ')}`);
+            if (target && customPlaylists[target]) {
+                if (!customPlaylists[target].includes(currentTrackId)) {
+                    customPlaylists[target].push(currentTrackId);
+                    alert(`Added successfully to ${target}!`);
+                    refreshSidebarPlaylists();
+
+                    // If viewing that target list actively, refresh grid layout view window states frame matching sets instantly
+                    if (activePlaylistFilter === target) {
+                        filterViewByPlaylist(target);
+                    }
+                } else {
+                    alert("This track is already inside that playlist!");
+                }
+            } else if (target) {
+                alert("Playlist not found! Match text naming exactly to save tracks successfully.");
+            }
+        });
+
+        optionsMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            optionsMenu.style.display = optionsMenu.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        document.addEventListener('click', () => {
+            optionsMenu.style.display = 'none';
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            activePlaylistFilter = null;
+            refreshSidebarPlaylists();
+            jumpSectionContainer.style.display = 'block';
+
+            const query = e.target.value.toLowerCase().trim();
+
+            playableCards.forEach(card => {
+                let textContent = "";
+                if (card.classList.contains('song-card')) {
+                    textContent = card.querySelector('p').innerText.toLowerCase();
+                } else {
+                    textContent = (card.querySelector('h3').innerText + " " + card.querySelector('p').innerText).toLowerCase();
+                }
+
+                if (textContent.includes(query)) {
+                    card.style.display = card.classList.contains('song-card') ? 'flex' : 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "0:00";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        function syncProgress() {
+            if (!activePlayer || !activePlayer.duration) return;
+            const pct = (activePlayer.currentTime / activePlayer.duration) * 100;
+            progressBar.style.width = `${pct}%`;
+            currentTimeText.innerText = formatTime(activePlayer.currentTime);
+            totalTimeText.innerText = formatTime(activePlayer.duration);
+        }
+
+        function resetMedia() {
+            audioEngine.pause();
+            videoEngine.pause();
+            videoPopup.style.display = 'none';
+        }
+
+        function togglePlayback(card) {
+            const trackId = card.getAttribute('data-id');
+            const trackUrl = card.getAttribute('data-src');
+            const type = card.getAttribute('data-type') || 'audio';
+
+            let title = "Unknown Title";
+            let artist = "Unknown Artist";
+
+            let imgElement = card.querySelector('img');
+            let imgSrc = imgElement ? imgElement.src : "";
+
+            if (card.classList.contains('song-card')) {
+                const pTag = card.querySelector('p');
+                if (pTag && pTag.childNodes.length > 0) {
+                    title = pTag.childNodes[0].textContent.trim();
+                }
+                const spanTag = card.querySelector('span');
+                if (spanTag) {
+                    artist = spanTag.innerText;
+                }
+            } else {
+                const h3Tag = card.querySelector('h3');
+                const pTag = card.querySelector('p');
+
+                if (h3Tag) title = h3Tag.innerText;
+                if (pTag) artist = pTag.innerText;
+            }
+
+            if (!trackUrl) return;
+
+            if (currentTrackId === trackId) {
+                if (isPlaying) {
+                    activePlayer.pause();
+                } else {
+                    activePlayer.play().catch(err => console.log(err));
+                }
+            } else {
+                resetMedia();
+                currentTrackId = trackId;
+                currentTitle.innerText = title;
+                currentArtist.innerText = artist;
+
+                if (sidebarArt && imgSrc) sidebarArt.src = imgSrc;
+                if (sidebarTopTitle) sidebarTopTitle.innerText = title;
+                if (sidebarTitle) sidebarTitle.innerText = title;
+                if (sidebarArtist) sidebarArtist.innerText = artist;
+                if (sidebarArtistName) sidebarArtistName.innerText = artist.split(',')[0];
+                if (sidebarArtistBanner && imgSrc) sidebarArtistBanner.style.backgroundImage = `url('${imgSrc}')`;
+
+                if (type === 'video') {
+                    activePlayer = videoEngine;
+                    videoEngine.src = trackUrl;
+                    videoPopup.style.display = 'block';
+                } else {
+                    activePlayer = audioEngine;
+                    activePlayer.src = trackUrl;
+                }
+
+                activePlayer.load();
+                activePlayer.play().catch(err => console.log(err));
+
+                activePlayer.removeEventListener('timeupdate', syncProgress);
+                activePlayer.addEventListener('timeupdate', syncProgress);
+            }
+        }
+
+        function changeTrack(direction) {
+            const visibleCards = playableCards.filter(card => card.style.display !== 'none');
+            if (visibleCards.length === 0) return;
+
+            let index = visibleCards.findIndex(card => card.getAttribute('data-id') === currentTrackId);
+
+            if (isShuffle) {
+                index = Math.floor(Math.random() * visibleCards.length);
+            } else {
+                if (direction === 'next') index = (index + 1) % visibleCards.length;
+                else index = (index - 1 + visibleCards.length) % visibleCards.length;
+            }
+            togglePlayback(visibleCards[index]);
+        }
+
+        function updateUIState() {
+            playableCards.forEach(card => {
+                const cardId = card.getAttribute('data-id');
+                const miniBtn = card.querySelector('.play-btn-mini, .play-btn');
+
+                if (cardId === currentTrackId && isPlaying) {
+                    if (miniBtn) miniBtn.innerText = '⏸';
+                } else {
+                    if (miniBtn) miniBtn.innerText = '▶';
+                }
+            });
+            masterPlayBtn.innerText = isPlaying ? '⏸' : '▶';
+        }
+
+        function playEvent() { isPlaying = true; updateUIState(); }
+        function pauseEvent() { isPlaying = false; updateUIState(); }
+        function endEvent() {
+            if (isRepeat) {
+                activePlayer.currentTime = 0;
+                activePlayer.play();
+            } else {
+                changeTrack('next');
+            }
+        }
+
+        [audioEngine, videoEngine].forEach(engine => {
+            engine.addEventListener('play', playEvent);
+            engine.addEventListener('pause', pauseEvent);
+            engine.addEventListener('ended', endEvent);
+        });
+
+        playableCards.forEach(card => {
+            card.addEventListener('click', () => togglePlayback(card));
+        });
+
+        masterPlayBtn.addEventListener('click', () => {
+            if (currentTrackId) {
+                const activeCard = document.querySelector(`[data-id="${currentTrackId}"]`);
+                if (activeCard) togglePlayback(activeCard);
+            }
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => changeTrack('next'));
+        document.getElementById('prevBtn').addEventListener('click', () => changeTrack('prev'));
+
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        shuffleBtn.addEventListener('click', () => {
+            isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle);
+        });
+
+        const repeatBtn = document.getElementById('repeatBtn');
+        repeatBtn.addEventListener('click', () => {
+            isRepeat = !isRepeat; repeatBtn.classList.toggle('active', isRepeat);
+        });
+
+        progressContainer.addEventListener('click', (e) => {
+            if (!activePlayer || !activePlayer.duration) return;
+            const targetTime = (e.offsetX / progressContainer.clientWidth) * activePlayer.duration;
+            activePlayer.currentTime = targetTime;
+        });
+
+        // Run default initialization once code processes
+        refreshSidebarPlaylists();
+    </script>
+</body>
+
+</html>
